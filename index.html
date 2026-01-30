@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Учёт настольных игр</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Шапка приложения -->
+    <header class="header">
+        <h1 class="header__title">🎲 Мои настольные игры</h1>
+        
+        <div class="dashboard">
+            <div class="dashboard__item">
+                <span class="dashboard__label">Игр в коллекции</span>
+                <span class="dashboard__value" id="gamesCount">0</span>
+            </div>
+            <div class="dashboard__item">
+                <span class="dashboard__label">Игроков</span>
+                <span class="dashboard__value" id="playersCount">0</span>
+            </div>
+            <div class="dashboard__item">
+                <span class="dashboard__label">Сыграно партий</span>
+                <span class="dashboard__value" id="matchesCount">0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Навигационное меню -->
+    <nav class="nav">
+        <button class="nav__btn nav__btn--active" data-section="games">
+            <i class="nav__icon fas fa-dice"></i>
+            <span class="nav__text">Игры</span>
+        </button>
+        <button class="nav__btn" data-section="players">
+            <i class="nav__icon fas fa-users"></i>
+            <span class="nav__text">Игроки</span>
+        </button>
+        <button class="nav__btn" data-section="matches">
+            <i class="nav__icon fas fa-trophy"></i>
+            <span class="nav__text">Партии</span>
+        </button>
+        <button class="nav__btn" data-section="randomizer">
+            <i class="nav__icon fas fa-shuffle"></i>
+            <span class="nav__text">Рандомайзер</span>
+        </button>
+        <button class="nav__btn" data-section="statistics">
+            <i class="nav__icon fas fa-chart-bar"></i>
+            <span class="nav__text">Статистика</span>
+        </button>
+    </nav>
+
+    <!-- Основной контент -->
+    <main class="container">
+        
+        <!-- =============================================== -->
+        <!-- СЕКЦИЯ: ИГРЫ -->
+        <!-- =============================================== -->
+        <section id="games-section" class="section section--active">
+            <div class="section__header">
+                <h2>Мои игры</h2>
+                <button class="btn btn--primary" id="addGameBtn">
+                    <i class="fas fa-plus"></i>
+                    Добавить игру
+                </button>
+            </div>
+            
+            <div id="gamesList" class="cards-grid">
+                <!-- Игры загружаются динамически -->
+            </div>
+        </section>
+
+        <!-- =============================================== -->
+        <!-- СЕКЦИЯ: ИГРОКИ -->
+        <!-- =============================================== -->
+        <section id="players-section" class="section">
+            <div class="section__header">
+                <h2>Игроки</h2>
+                <button class="btn btn--primary" id="addPlayerBtn">
+                    <i class="fas fa-plus"></i>
+                    Добавить игрока
+                </button>
+            </div>
+            <div id="playersList" class="cards-grid cards-grid--players">
+                <!-- Игроки загружаются динамически -->
+            </div>
+        </section>
+
+        <!-- =============================================== -->
+        <!-- СЕКЦИЯ: ПАРТИИ -->
+        <!-- =============================================== -->
+        <section id="matches-section" class="section">
+            <div class="section__header">
+                <h2 class="section__title">🏆 Партии</h2>
+                <button class="btn btn--primary" id="addMatchBtn">
+                    <i class="fas fa-plus"></i>
+                    Записать партию
+                </button>
+            </div>
+            
+            <!-- Статистика -->
+            <div id="matchesStatistics"></div>
+            
+            <!-- Фильтры и сортировка -->
+            <div class="matches-controls">
+                <div class="matches-controls__filters">
+                    <label class="form__label">
+                        Игра:
+                        <select id="matchFilterGame" class="form__select form__select--small">
+                            <option value="">Все игры</option>
+                        </select>
+                    </label>
+                    
+                    <label class="form__label">
+                        Игрок:
+                        <select id="matchFilterPlayer" class="form__select form__select--small">
+                            <option value="">Все игроки</option>
+                        </select>
+                    </label>
+                    
+                    <label class="form__label">
+                        Сортировка:
+                        <select id="matchSortBy" class="form__select form__select--small">
+                            <option value="date-desc">Сначала новые</option>
+                            <option value="date-asc">Сначала старые</option>
+                            <option value="game">По игре</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Список партий -->
+            <div id="matchesList" class="matches-list"></div>
+        </section>
+
+<!-- =============================================== -->
+<!-- СЕКЦИЯ: РАНДОМАЙЗЕР -->
+<!-- =============================================== -->
+<section id="randomizer-section" class="section">
+    <div class="section__header">
+        <div>
+            <h2 class="section__title">🎲 Рандомайзер</h2>
+            <p class="section__subtitle">Не можете выбрать, во что сыграть? Мы поможем!</p>
+        </div>
+    </div>
+    
+    <!-- Основной контейнер (показывается, если есть игры) -->
+    <div id="randomizerMainContainer">
+        <!-- Фильтры -->
+        <div class="randomizer-filters">
+            <h3 class="filters-title">Фильтры (опционально)</h3>
+            
+            <!-- Фильтр: Количество игроков -->
+            <div class="filter-group">
+                <label class="filter-checkbox">
+                    <input type="checkbox" id="filterByPlayers">
+                    <span>Количество игроков</span>
+                </label>
+                <div class="filter-inputs filter-inputs--single">
+                    <label for="playersCount" class="input-label">Сейчас нас:</label>
+                    <input 
+                        type="number" 
+                        id="playersCount" 
+                        class="form__input form__input--small"
+                        min="1" 
+                        max="99"
+                        placeholder="Например, 4"
+                    >
+                    <span class="filter-hint">👥 Рандомайзер выберет игру, в которую можно играть таким количеством</span>
+                </div>
+            </div>
+            
+            <!-- Фильтр: Длительность -->
+            <div class="filter-group">
+                <label class="filter-checkbox">
+                    <input type="checkbox" id="filterByDuration">
+                    <span>Длительность партии</span>
+                </label>
+                <div class="filter-inputs filter-inputs--single">
+                    <label for="maxDuration" class="input-label">Есть времени (минуты):</label>
+                    <input 
+                        type="number" 
+                        id="maxDuration" 
+                        class="form__input form__input--small"
+                        min="1" 
+                        max="999"
+                        placeholder="Например, 60"
+                    >
+                    <span class="filter-hint">⏱️ Рандомайзер выберет игру, которая уложится в это время</span>
+                </div>
+            </div>
+            
+            <!-- Фильтр: Категория -->
+            <div class="filter-group">
+                <label class="filter-checkbox">
+                    <input type="checkbox" id="filterByCategory">
+                    <span>Категория</span>
+                </label>
+                <div class="filter-inputs filter-inputs--single">
+                    <select id="categoryFilter" class="form__select">
+                        <option value="">Все категории</option>
+                    </select>
+                    <span class="filter-hint">📂 Показать только игры выбранной категории</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Кнопка "Выбрать случайную игру" -->
+        <div class="randomizer-action">
+            <button type="button" class="btn btn--randomize" id="randomizeBtn">
+                <i class="fas fa-dice"></i>
+                ВЫБРАТЬ СЛУЧАЙНУЮ ИГРУ
+            </button>
+        </div>
+        
+        <!-- Анимация "думания" -->
+        <div id="randomSelectionAnimation" class="random-animation" style="display: none;">
+            <div class="spinner"></div>
+            <p>🎲 Выбираем игру...</p>
+        </div>
+        
+        <!-- Контейнер результата -->
+        <div id="randomizerResult"></div>
+    </div>
+    
+    <!-- Пустое состояние (показывается, если нет игр) -->
+    <div id="randomizerEmptyState" class="randomizer-empty-state" style="display: none;">
+        <div class="empty-icon">🎲</div>
+        <h2>Коллекция игр пуста</h2>
+        <p>Добавьте игры в коллекцию, чтобы использовать рандомайзер</p>
+        <button class="btn btn--primary btn--large" onclick="showSection('games')">
+            <i class="fas fa-plus"></i>
+            Перейти к играм
+        </button>
+    </div>
+</section>
+
+
+        <!-- =============================================== -->
+        <!-- СЕКЦИЯ: СТАТИСТИКА -->
+        <!-- =============================================== -->
+        <section id="statistics-section" class="section">
+            <div class="section__header">
+                <h2 class="section__title">📊 Статистика</h2>
+            </div>
+            
+            <!-- Основной контейнер (показывается, если есть данные) -->
+            <div id="statsMainContainer">
+                
+                <!-- СЕКЦИЯ 1: Общая статистика -->
+                <div class="stats-block">
+                    <h3 class="stats-block-title">📈 Общая статистика</h3>
+                    <div id="generalStatsCards"></div>
+                </div>
+                
+                <!-- СЕКЦИЯ 2: Статистика по играм -->
+                <div class="stats-block">
+                    <h3 class="stats-block-title">🎲 Статистика по играм</h3>
+                    <div id="gameStatsContainer"></div>
+                </div>
+                
+                <!-- СЕКЦИЯ 3: Статистика по игрокам -->
+                <div class="stats-block">
+                    <h3 class="stats-block-title">👥 Статистика по игрокам</h3>
+                    <div id="playerStatsContainer"></div>
+                </div>
+                
+                <!-- СЕКЦИЯ 4: Статистика по партиям -->
+                <div class="stats-block">
+                    <h3 class="stats-block-title">🏆 Статистика по партиям</h3>
+                    <div id="matchStatsContainer"></div>
+                </div>
+                
+            </div>
+            
+            <!-- Пустое состояние (показывается, если нет данных) -->
+            <div id="statsEmptyState" class="stats-empty-state">
+                <div class="empty-icon">📊</div>
+                <h2>Недостаточно данных для статистики</h2>
+                <p>Добавьте игры, игроков и записывайте партии,<br>чтобы увидеть интересную статистику!</p>
+                <button class="btn btn--primary btn--large" onclick="showSection('games')">
+                    <i class="fas fa-plus"></i>
+                    Перейти к играм
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- =============================================== -->
+    <!-- МОДАЛЬНЫЕ ОКНА -->
+    <!-- =============================================== -->
+
+    <!-- МОДАЛЬНОЕ ОКНО: ФОРМА ИГРЫ -->
+    <div id="gameFormModal" class="modal">
+        <div class="modal__overlay" id="gameFormOverlay"></div>
+        <div class="modal__content">
+            <div class="modal__header">
+                <h3 class="modal__title" id="gameFormTitle">Добавить игру</h3>
+                <button class="modal__close" id="closeGameFormBtn" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="gameForm" class="form">
+                <input type="hidden" id="gameId" value="">
+                
+                <!-- Название игры -->
+                <div class="form__group">
+                    <label for="gameName" class="form__label">
+                        Название игры <span class="form__required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="gameName" 
+                        class="form__input" 
+                        placeholder="Например: Каркассон"
+                    >
+                    <span class="form__error" id="gameNameError"></span>
+                </div>
+                
+                <!-- Фото игры -->
+                <div class="form__group">
+                    <label class="form__label">Фото игры</label>
+                    <div class="photo-upload">
+                        <input 
+                            type="file" 
+                            id="gamePhoto" 
+                            class="photo-upload__input" 
+                            accept="image/jpeg,image/png,image/webp"
+                        >
+                        <label for="gamePhoto" class="photo-upload__label" id="photoUploadLabel">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Нажмите для загрузки фото</span>
+                            <small>JPG, PNG или WEBP (макс. 5 МБ)</small>
+                        </label>
+                        
+                        <div id="photoPreview" class="photo-preview" style="display: none;">
+                            <img id="photoPreviewImg" src="" alt="Превью">
+                            <button type="button" class="photo-preview__remove" id="removePhotoBtn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div id="photoLoading" class="photo-loading" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Обрабатываем фото...</span>
+                        </div>
+                    </div>
+                    <span class="form__error" id="gamePhotoError"></span>
+                </div>
+                
+                <!-- Категория -->
+                <div class="form__group">
+                    <label for="gameCategory" class="form__label">
+                        Категория <span class="form__required">*</span>
+                    </label>
+                    <div class="form__group-inline">
+                        <select id="gameCategory" class="form__input form__select">
+                            <option value="">Выберите категорию</option>
+                        </select>
+                        <button type="button" class="btn btn--icon" id="addCategoryBtn" title="Добавить новую категорию">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button type="button" class="btn btn--icon" id="manageCategoriesBtn" title="Управление категориями">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                    </div>
+                    <span class="form__error" id="gameCategoryError"></span>
+                </div>
+                
+                <!-- Дата покупки -->
+                <div class="form__group">
+                    <label for="gamePurchaseDate" class="form__label">Дата покупки</label>
+                    <input 
+                        type="date" 
+                        id="gamePurchaseDate" 
+                        class="form__input"
+                    >
+                    <span class="form__error" id="gamePurchaseDateError"></span>
+                </div>
+                
+                <!-- Цена -->
+                <div class="form__group">
+                    <label for="gamePrice" class="form__label">Цена (₽)</label>
+                    <input 
+                        type="number" 
+                        id="gamePrice" 
+                        class="form__input" 
+                        placeholder="0"
+                        min="0"
+                        step="1"
+                    >
+                    <span class="form__error" id="gamePriceError"></span>
+                </div>
+                
+                <!-- Количество игроков -->
+                <div class="form__group-row">
+                    <div class="form__group">
+                        <label for="gameMinPlayers" class="form__label">Мин. игроков</label>
+                        <input 
+                            type="number" 
+                            id="gameMinPlayers" 
+                            class="form__input" 
+                            placeholder="1"
+                            min="1"
+                            step="1"
+                        >
+                    </div>
+                    <div class="form__group">
+                        <label for="gameMaxPlayers" class="form__label">Макс. игроков</label>
+                        <input 
+                            type="number" 
+                            id="gameMaxPlayers" 
+                            class="form__input" 
+                            placeholder="4"
+                            min="1"
+                            step="1"
+                        >
+                    </div>
+                </div>
+                <span class="form__error" id="gamePlayersError"></span>
+                
+                <!-- Длительность -->
+                <div class="form__group">
+                    <label for="gameAvgDuration" class="form__label">Средняя длительность (минуты)</label>
+                    <input 
+                        type="number" 
+                        id="gameAvgDuration" 
+                        class="form__input" 
+                        placeholder="60"
+                        min="1"
+                        step="1"
+                    >
+                </div>
+                
+                <!-- Сложность -->
+                <div class="form__group">
+                    <label for="gameDifficulty" class="form__label">Уровень сложности</label>
+                    <select id="gameDifficulty" class="form__input form__select">
+                        <option value="">Не указана</option>
+                        <option value="Лёгкая">Лёгкая</option>
+                        <option value="Средняя">Средняя</option>
+                        <option value="Сложная">Сложная</option>
+                        <option value="Экспертная">Экспертная</option>
+                    </select>
+                </div>
+                
+                <!-- Кнопки -->
+                <div class="form__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelGameFormBtn">
+                        Отмена
+                    </button>
+                    <button type="submit" class="btn btn--primary" id="saveGameBtn">
+                        <i class="fas fa-save"></i>
+                        Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: ФОРМА ИГРОКА -->
+    <div id="playerFormModal" class="modal">
+        <div class="modal__overlay" id="playerFormOverlay"></div>
+        <div class="modal__content modal__content--small">
+            <div class="modal__header">
+                <h3 class="modal__title" id="playerFormTitle">Добавить игрока</h3>
+                <button class="modal__close" id="closePlayerFormBtn" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="playerForm" class="form">
+                <input type="hidden" id="playerId" value="">
+                
+                <!-- Имя игрока -->
+                <div class="form__group">
+                    <label for="playerName" class="form__label">
+                        Имя игрока <span class="form__required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="playerName" 
+                        class="form__input" 
+                        placeholder="Например: Анна"
+                    >
+                    <span class="form__error" id="playerNameError"></span>
+                </div>
+                
+                <!-- Фото игрока -->
+                <div class="form__group">
+                    <label class="form__label">Фото игрока</label>
+                    <div class="photo-upload">
+                        <input 
+                            type="file" 
+                            id="playerPhoto" 
+                            class="photo-upload__input" 
+                            accept="image/jpeg,image/png,image/webp"
+                        >
+                        <label for="playerPhoto" class="photo-upload__label" id="playerPhotoUploadLabel">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Нажмите для загрузки фото</span>
+                            <small>JPG, PNG или WEBP (макс. 5 МБ)</small>
+                        </label>
+                        
+                        <div id="playerPhotoPreview" class="photo-preview" style="display: none;">
+                            <img id="playerPhotoPreviewImg" src="" alt="Превью">
+                            <button type="button" class="photo-preview__remove" id="removePlayerPhotoBtn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div id="playerPhotoLoading" class="photo-loading" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Обрабатываем фото...</span>
+                        </div>
+                    </div>
+                    <span class="form__error" id="playerPhotoError"></span>
+                </div>
+                
+                <!-- Кнопки -->
+                <div class="form__actions">
+                    <button type="button" class="btn btn--secondary" id="cancelPlayerFormBtn">
+                        Отмена
+                    </button>
+                    <button type="submit" class="btn btn--primary" id="savePlayerBtn">
+                        <i class="fas fa-save"></i>
+                        Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: ФОРМА ПАРТИИ -->
+    <div id="matchFormModal" class="modal">
+        <div class="modal__overlay" id="matchFormOverlay"></div>
+        <div class="modal__content modal__content--large">
+            <div class="modal__header">
+                <h2 class="modal__title" id="matchFormTitle">Записать партию</h2>
+                <button class="modal__close" id="closeMatchFormBtn">&times;</button>
+            </div>
+            
+            <form id="matchForm" class="form">
+                <input type="hidden" id="matchId">
+                
+                <!-- Шаг 1: Выбор игры -->
+                <div class="form__section">
+                    <h3 class="form__section-title">1. Выберите игру</h3>
+                    
+                    <div class="form__group">
+                        <label class="form__label" for="matchGameId">
+                            Игра <span class="form__required">*</span>
+                        </label>
+                        <select id="matchGameId" class="form__select" required>
+                            <option value="">-- Выберите игру --</option>
+                        </select>
+                        <span class="form__error" id="matchGameError"></span>
+                    </div>
+                    
+                    <!-- Отображение выбранной игры -->
+                    <div id="selectedGameDisplay" class="selected-game" style="display: none;"></div>
+                </div>
+                
+                <!-- Шаг 2: Выбор участников -->
+                <div class="form__section">
+                    <h3 class="form__section-title">2. Выберите участников</h3>
+                    
+                    <div class="form__group">
+                        <div id="matchPlayersContainer" class="players-grid"></div>
+                        <span class="form__error" id="matchPlayersError"></span>
+                    </div>
+                </div>
+                
+                <!-- Шаг 3: Результаты -->
+                <div id="matchScoresSection" class="form__section" style="display: none;">
+                    <h3 class="form__section-title">3. Введите результаты</h3>
+                    
+                    <div class="form__group">
+                        <div id="matchScoresContainer" class="scores-grid"></div>
+                        <span class="form__error" id="matchScoresError"></span>
+                        <p class="form__hint">
+                            💡 Если не отметите победителя вручную, им станет игрок с максимальными очками
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Шаг 4: Дополнительная информация -->
+                <div class="form__section">
+                    <h3 class="form__section-title">4. Дополнительная информация</h3>
+                    
+                    <div class="form__row">
+                        <div class="form__group">
+                            <label class="form__label" for="matchDate">
+                                Дата партии <span class="form__required">*</span>
+                            </label>
+                            <input type="date" id="matchDate" class="form__input" required>
+                            <span class="form__error" id="matchDateError"></span>
+                        </div>
+                        
+                        <div class="form__group">
+                            <label class="form__label" for="matchDuration">
+                                Длительность (минуты)
+                            </label>
+                            <input type="number" id="matchDuration" class="form__input" min="1" placeholder="120">
+                            <span class="form__error" id="matchDurationError"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="form__group">
+                        <label class="form__label" for="matchNotes">
+                            Заметки о партии
+                        </label>
+                        <textarea id="matchNotes" class="form__textarea" rows="3" placeholder="Опишите, как прошла партия..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="form__actions">
+                    <button type="submit" class="btn btn--primary btn--large">
+                        <i class="fas fa-save"></i>
+                        Сохранить партию
+                    </button>
+                    <button type="button" class="btn btn--secondary btn--large" id="cancelMatchFormBtn">
+                        Отмена
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: ПОДТВЕРЖДЕНИЕ УДАЛЕНИЯ ИГРЫ -->
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal__overlay" id="deleteConfirmOverlay"></div>
+        <div class="modal__content modal__content--small">
+            <div class="modal__header">
+                <h3 class="modal__title">Подтверждение удаления</h3>
+            </div>
+            
+            <div class="modal__body">
+                <p id="deleteConfirmText">Вы уверены, что хотите удалить эту игру?</p>
+                <p class="text-danger"><strong>Это действие нельзя отменить.</strong></p>
+            </div>
+            
+            <div class="modal__actions">
+                <button type="button" class="btn btn--secondary" id="cancelDeleteBtn">
+                    Отмена
+                </button>
+                <button type="button" class="btn btn--danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash"></i>
+                    Да, удалить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: ПОДТВЕРЖДЕНИЕ УДАЛЕНИЯ ИГРОКА -->
+    <div id="deletePlayerConfirmModal" class="modal">
+        <div class="modal__overlay" id="deletePlayerConfirmOverlay"></div>
+        <div class="modal__content modal__content--small">
+            <div class="modal__header">
+                <h3 class="modal__title">Подтверждение удаления</h3>
+            </div>
+            
+            <div class="modal__body">
+                <p id="deletePlayerConfirmText">Вы уверены, что хотите удалить этого игрока?</p>
+                <p class="text-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Внимание:</strong> Все партии с участием этого игрока останутся, но информация об игроке будет потеряна.
+                </p>
+            </div>
+            
+            <div class="modal__actions">
+                <button type="button" class="btn btn--secondary" id="cancelDeletePlayerBtn">
+                    Отмена
+                </button>
+                <button type="button" class="btn btn--danger" id="confirmDeletePlayerBtn">
+                    <i class="fas fa-trash"></i>
+                    Да, удалить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: ПОДТВЕРЖДЕНИЕ УДАЛЕНИЯ ПАРТИИ -->
+    <div id="deleteMatchConfirmModal" class="modal modal--small">
+        <div class="modal__overlay" id="deleteMatchConfirmOverlay"></div>
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2 class="modal__title">Удалить партию?</h2>
+            </div>
+            
+            <div class="modal__body">
+                <p id="deleteMatchConfirmText"></p>
+            </div>
+            
+            <div class="modal__actions">
+                <button class="btn btn--danger" id="confirmDeleteMatchBtn">
+                    <i class="fas fa-trash"></i>
+                    Да, удалить
+                </button>
+                <button class="btn btn--secondary" id="cancelDeleteMatchBtn">
+                    Отмена
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: ДОБАВЛЕНИЕ КАТЕГОРИИ -->
+    <div id="addCategoryModal" class="modal">
+        <div class="modal__overlay" id="addCategoryOverlay"></div>
+        <div class="modal__content modal__content--small">
+            <div class="modal__header">
+                <h3 class="modal__title">Добавить категорию</h3>
+                <button class="modal__close" id="closeAddCategoryBtn" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal__body">
+                <div class="form__group">
+                    <label for="newCategoryInput" class="form__label">
+                        Название категории <span class="form__required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="newCategoryInput" 
+                        class="form__input" 
+                        placeholder="Например: Хоррор"
+                    >
+                    <span class="form__error" id="categoryError"></span>
+                </div>
+            </div>
+            
+            <div class="modal__actions">
+                <button type="button" class="btn btn--secondary" id="cancelAddCategoryBtn">
+                    Отмена
+                </button>
+                <button type="button" class="btn btn--primary" id="saveNewCategoryBtn">
+                    <i class="fas fa-plus"></i>
+                    Добавить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: УПРАВЛЕНИЕ КАТЕГОРИЯМИ -->
+    <div id="manageCategoriesModal" class="modal">
+        <div class="modal__overlay" id="manageCategoriesOverlay"></div>
+        <div class="modal__content">
+            <div class="modal__header">
+                <h3 class="modal__title">Управление категориями</h3>
+                <button class="modal__close" id="closeManageCategoriesBtn" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal__body">
+                <p class="hint-text">
+                    <i class="fas fa-info-circle"></i>
+                    Можно удалить только добавленные вами категории (не из списка по умолчанию)
+                </p>
+                
+                <div id="categoriesList" class="categories-list">
+                    <!-- Категории загружаются динамически -->
+                </div>
+            </div>
+            
+            <div class="modal__actions">
+                <button type="button" class="btn btn--secondary" id="closeManageCategoriesBtn2">
+                    Закрыть
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключение скриптов -->
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/imageUtils.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/loader.js"></script>
+    <script src="js/games.js"></script>
+    <script src="js/players.js"></script>
+    <script src="js/matches.js"></script>
+    <script src="js/randomizer.js"></script>
+    <script src="js/statistics.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
