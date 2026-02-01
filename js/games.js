@@ -1,6 +1,6 @@
 // ============================================
 // === МОДУЛЬ: УПРАВЛЕНИЕ ИГРАМИ ===
-// ФИНАЛЬНАЯ ВЕРСИЯ: Оптимизированная
+// ФИНАЛЬНАЯ ВЕРСИЯ: с ролями/героями/корпорациями
 // Функции работы с фото вынесены в imageUtils.js
 // Функции модальных окон вынесены в utils.js
 // ============================================
@@ -8,212 +8,180 @@
 // Глобальные переменные
 let currentPhotoBase64 = null;
 let gameToDeleteId = null;
+// Роли/герои/корпорации текущей игры (массив строк)
+let currentGameRoles = [];
 
 // ============================================
 // === ИНИЦИАЛИЗАЦИЯ ===
 // ============================================
 
-/**
- * Инициализация модуля игр при загрузке страницы
- */
 function initGamesModule() {
     console.log('🎮 Инициализация модуля игр');
     
-    // Миграция старых данных с опечаткой
     fixCategoryTypo();
     fixGameCategories();
     
-    // Инициализация категорий
     initializeCategories();
-    
-    // Загрузка категорий в селект
     loadCategories();
     
-    // Установка сегодняшней даты по умолчанию
     const today = new Date().toISOString().split('T')[0];
     const dateInput = document.getElementById('gamePurchaseDate');
-    if (dateInput) {
-        dateInput.value = today;
-    }
+    if (dateInput) dateInput.value = today;
     
-    // Привязка обработчиков событий
     setupGamesEventListeners();
-    
-    // Отрисовка списка игр
     renderGamesList();
-    
-    // Обновление дашборда
     updateGamesDashboard();
     
     console.log('✅ Модуль игр инициализирован');
 }
 
-/**
- * Настройка обработчиков событий для страницы игр
- */
+// ============================================
+// === ОБРАБОТЧИКИ СОБЫТИЙ ===
+// ============================================
+
 function setupGamesEventListeners() {
-    // Кнопка "Добавить игру"
     const addGameBtn = document.getElementById('addGameBtn');
-    if (addGameBtn) {
-        addGameBtn.addEventListener('click', openAddGameForm);
-    }
+    if (addGameBtn) addGameBtn.addEventListener('click', openAddGameForm);
     
-    // Закрытие формы игры
     const closeBtn = document.getElementById('closeGameFormBtn');
     const cancelBtn = document.getElementById('cancelGameFormBtn');
     const overlay = document.getElementById('gameFormOverlay');
-    
     if (closeBtn) closeBtn.addEventListener('click', closeGameForm);
     if (cancelBtn) cancelBtn.addEventListener('click', closeGameForm);
     if (overlay) overlay.addEventListener('click', closeGameForm);
     
-    // Загрузка фото
     const photoInput = document.getElementById('gamePhoto');
     const removePhotoBtn = document.getElementById('removePhotoBtn');
-    
     if (photoInput) photoInput.addEventListener('change', handlePhotoSelection);
     if (removePhotoBtn) removePhotoBtn.addEventListener('click', removePhoto);
     
-    // Кнопки управления категориями
     const addCategoryBtn = document.getElementById('addCategoryBtn');
     const manageCategoriesBtn = document.getElementById('manageCategoriesBtn');
-    
     if (addCategoryBtn) addCategoryBtn.addEventListener('click', openAddCategoryModal);
     if (manageCategoriesBtn) manageCategoriesBtn.addEventListener('click', openManageCategoriesModal);
     
-    // Закрытие модалки добавления категории
     const closeAddCatBtn = document.getElementById('closeAddCategoryBtn');
     const cancelAddCatBtn = document.getElementById('cancelAddCategoryBtn');
     const saveNewCatBtn = document.getElementById('saveNewCategoryBtn');
     const addCatOverlay = document.getElementById('addCategoryOverlay');
-    
     if (closeAddCatBtn) closeAddCatBtn.addEventListener('click', closeAddCategoryModal);
     if (cancelAddCatBtn) cancelAddCatBtn.addEventListener('click', closeAddCategoryModal);
     if (saveNewCatBtn) saveNewCatBtn.addEventListener('click', saveNewCategory);
     if (addCatOverlay) addCatOverlay.addEventListener('click', closeAddCategoryModal);
     
-    // Enter для сохранения категории
     const newCatInput = document.getElementById('newCategoryInput');
     if (newCatInput) {
         newCatInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
+                e.preventDefault();
                 saveNewCategory();
             }
         });
     }
     
-    // Закрытие модалки управления категориями
     const closeManageCatBtn = document.getElementById('closeManageCategoriesBtn');
     const closeManageCatBtn2 = document.getElementById('closeManageCategoriesBtn2');
     const manageCatOverlay = document.getElementById('manageCategoriesOverlay');
-    
     if (closeManageCatBtn) closeManageCatBtn.addEventListener('click', closeManageCategoriesModal);
     if (closeManageCatBtn2) closeManageCatBtn2.addEventListener('click', closeManageCategoriesModal);
     if (manageCatOverlay) manageCatOverlay.addEventListener('click', closeManageCategoriesModal);
     
-    // Сохранение формы
     const gameForm = document.getElementById('gameForm');
-    if (gameForm) {
-        gameForm.addEventListener('submit', handleGameFormSubmit);
-    }
+    if (gameForm) gameForm.addEventListener('submit', handleGameFormSubmit);
     
-    // Закрытие модалки удаления игры
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     const deleteOverlay = document.getElementById('deleteConfirmOverlay');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-    
     if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', closeDeleteConfirmModal);
     if (deleteOverlay) deleteOverlay.addEventListener('click', closeDeleteConfirmModal);
     if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', confirmGameDeletion);
+    
+    // Роли / герои / корпорации
+    const addRoleBtn = document.getElementById('addRoleBtn');
+    if (addRoleBtn) {
+        addRoleBtn.addEventListener('click', () => {
+            const input = document.getElementById('newRoleInput');
+            if (!input) return;
+            const value = input.value.trim();
+            if (!value) return;
+            if (!currentGameRoles.includes(value)) {
+                currentGameRoles.push(value);
+                renderGameRoles(currentGameRoles);
+            }
+            input.value = '';
+            input.focus();
+        });
+    }
+    
+    const newRoleInput = document.getElementById('newRoleInput');
+    if (newRoleInput) {
+        newRoleInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = newRoleInput.value.trim();
+                if (!value) return;
+                if (!currentGameRoles.includes(value)) {
+                    currentGameRoles.push(value);
+                    renderGameRoles(currentGameRoles);
+                }
+                newRoleInput.value = '';
+            }
+        });
+    }
 }
 
 // ============================================
-// === МИГРАЦИЯ ДАННЫХ (ИСПРАВЛЕНИЕ ОПЕЧАТКИ) ===
+// === МИГРАЦИЯ КАТЕГОРИЙ ===
 // ============================================
 
-/**
- * Исправить опечатку в категориях "Деуктивная" → "Дедукция"
- */
 function fixCategoryTypo() {
-    const categories = getCategories(); // Из storage.js
-    
+    const categories = getCategories();
     if (!categories) return;
     
     let needsUpdate = false;
     const fixedCategories = categories.map(cat => {
         if (cat === 'Деуктивная') {
             needsUpdate = true;
-            console.log('🔧 Исправление опечатки в категориях: Деуктивная → Дедукция');
             return 'Дедукция';
         }
         return cat;
     });
     
-    if (needsUpdate) {
-        saveCategories(fixedCategories); // Из storage.js
-        console.log('✅ Категории обновлены');
-    }
+    if (needsUpdate) saveCategories(fixedCategories);
 }
 
-/**
- * Исправить категории в играх
- */
 function fixGameCategories() {
-    const games = getGames(); // Из storage.js
-    
+    const games = getGames();
     if (!games || games.length === 0) return;
     
     let needsUpdate = false;
     const fixedGames = games.map(game => {
         if (game.category === 'Деуктивная') {
             needsUpdate = true;
-            console.log('🔧 Исправление категории игры:', game.name, '| Деуктивная → Дедукция');
             game.category = 'Дедукция';
         }
         return game;
     });
     
-    if (needsUpdate) {
-        saveGames(fixedGames); // Из storage.js
-        console.log('✅ Категории игр обновлены');
-    }
+    if (needsUpdate) saveGames(fixedGames);
 }
 
 // ============================================
-// === УПРАВЛЕНИЕ ДАННЫМИ ИГРЫ ===
+// === ДАННЫЕ ИГР ===
 // ============================================
 
-/**
- * Получить все игры из LocalStorage
- * @returns {Array} Массив объектов игр
- */
 function getAllGames() {
-    const games = getGames(); // Из storage.js
+    const games = getGames();
     console.log('📖 Загружено игр:', games.length);
     return games;
 }
 
-/**
- * Получить игру по ID
- * @param {string} id - Уникальный идентификатор игры
- * @returns {Object|null} Объект игры или null
- */
 function getGameById(id) {
     const games = getAllGames();
     const game = games.find(g => g.id === id);
-    
-    if (game) {
-        console.log('🎲 Найдена игра:', game.name, '| Фото:', game.photoBase64 ? 'Есть' : 'Нет');
-    }
-    
     return game || null;
 }
 
-/**
- * Добавить новую игру
- * @param {Object} gameData - Данные игры
- * @returns {Object} Добавленная игра с ID
- */
 function addGameToStorage(gameData) {
     const games = getAllGames();
     
@@ -228,42 +196,23 @@ function addGameToStorage(gameData) {
         maxPlayers: gameData.maxPlayers || null,
         avgDuration: gameData.avgDuration || null,
         difficulty: gameData.difficulty || null,
+        roles: Array.isArray(gameData.roles) ? gameData.roles : [], // НОВОЕ ПОЛЕ
         createdAt: new Date().toISOString()
     };
     
-    console.log('➕ Добавляем игру:', newGame.name);
-    console.log('📸 Фото Base64 длина:', newGame.photoBase64 ? newGame.photoBase64.length : 'нет фото');
-    
     games.push(newGame);
-    
-    const saved = saveGames(games); // Из storage.js
-    
-    if (saved) {
-        console.log('✅ Игра успешно добавлена и сохранена');
-    } else {
-        console.error('❌ Ошибка сохранения игры');
-    }
-    
+    const saved = saveGames(games);
+    if (!saved) console.error('❌ Ошибка сохранения игры');
     return newGame;
 }
 
-/**
- * Обновить существующую игру
- * @param {string} id - ID игры
- * @param {Object} gameData - Обновлённые данные
- * @returns {boolean} true если успешно
- */
 function updateGameInStorage(id, gameData) {
     const games = getAllGames();
     const index = games.findIndex(game => game.id === id);
-    
     if (index === -1) {
         console.error('❌ Игра не найдена для обновления:', id);
         return false;
     }
-    
-    console.log('✏️ Обновляем игру:', gameData.name);
-    console.log('📸 Фото Base64 длина:', gameData.photoBase64 ? gameData.photoBase64.length : 'нет фото');
     
     games[index] = {
         ...games[index],
@@ -276,100 +225,63 @@ function updateGameInStorage(id, gameData) {
         maxPlayers: gameData.maxPlayers || null,
         avgDuration: gameData.avgDuration || null,
         difficulty: gameData.difficulty || null,
+        roles: Array.isArray(gameData.roles) ? gameData.roles : games[index].roles || [],
         updatedAt: new Date().toISOString()
     };
     
-    const saved = saveGames(games); // Из storage.js
-    
-    if (saved) {
-        console.log('✅ Игра успешно обновлена');
-    } else {
-        console.error('❌ Ошибка обновления игры');
-    }
-    
+    const saved = saveGames(games);
+    if (!saved) console.error('❌ Ошибка обновления игры');
     return saved;
 }
 
-/**
- * Удалить игру по ID
- * @param {string} id - ID игры
- * @returns {boolean} true если успешно
- */
 function deleteGameFromStorage(id) {
     const games = getAllGames();
     const game = games.find(g => g.id === id);
-    
     if (!game) {
         console.error('❌ Игра не найдена для удаления:', id);
         return false;
     }
     
-    console.log('🗑️ Удаляем игру:', game.name);
-    
     const filteredGames = games.filter(g => g.id !== id);
-    
-    const saved = saveGames(filteredGames); // Из storage.js
-    
-    if (saved) {
-        console.log('✅ Игра успешно удалена');
-    } else {
-        console.error('❌ Ошибка удаления игры');
-    }
-    
+    const saved = saveGames(filteredGames);
+    if (!saved) console.error('❌ Ошибка удаления игры');
     return saved;
 }
 
 // ============================================
-// === ОТОБРАЖЕНИЕ СПИСКА ИГР ===
+// === СПИСОК ИГР ===
 // ============================================
 
-/**
- * Отрисовать весь список игр
- */
 function renderGamesList() {
     const games = getAllGames();
     const container = document.getElementById('gamesList');
-    
-    if (!container) {
-        console.error('❌ Контейнер gamesList не найден');
-        return;
-    }
+    if (!container) return;
     
     if (games.length === 0) {
         showEmptyState();
         return;
     }
     
-    console.log('🎨 Отрисовка списка игр:', games.length);
+    container.innerHTML = games.map(renderGameCard).join('');
     
-    container.innerHTML = games.map(game => renderGameCard(game)).join('');
-    
-    // Привязка обработчиков к кнопкам карточек
     games.forEach(game => {
         const editBtn = document.getElementById(`edit-${game.id}`);
         const deleteBtn = document.getElementById(`delete-${game.id}`);
-        
         if (editBtn) editBtn.addEventListener('click', () => openEditGameForm(game.id));
         if (deleteBtn) deleteBtn.addEventListener('click', () => openDeleteConfirmModal(game.id));
     });
 }
 
-/**
- * Создать HTML-разметку одной карточки игры
- * @param {Object} game - Объект игры
- * @returns {string} HTML-строка карточки
- */
 function renderGameCard(game) {
     const hasPhoto = game.photoBase64 && game.photoBase64.trim() !== '';
-    
     const photoHTML = hasPhoto
         ? `<img src="${game.photoBase64}" alt="${escapeHtml(game.name)}" class="game-card__image">`
         : `<div class="game-card__placeholder">🎲</div>`;
     
     const priceText = game.price ? `${game.price} ₽` : 'Не указана';
     const dateText = game.purchaseDate ? formatDateShort(game.purchaseDate) : 'Не указана';
-    const playersText = game.minPlayers && game.maxPlayers 
-        ? `${game.minPlayers}-${game.maxPlayers}` 
+    const playersText = game.minPlayers && game.maxPlayers
+        ? `${game.minPlayers}-${game.maxPlayers}`
         : (game.minPlayers ? `от ${game.minPlayers}` : 'Не указано');
     const durationText = game.avgDuration ? `~${game.avgDuration} мин` : 'Не указана';
     
@@ -416,9 +328,6 @@ function renderGameCard(game) {
     `;
 }
 
-/**
- * Показать пустое состояние (когда нет игр)
- */
 function showEmptyState() {
     const container = document.getElementById('gamesList');
     if (!container) return;
@@ -432,12 +341,9 @@ function showEmptyState() {
 }
 
 // ============================================
-// === УПРАВЛЕНИЕ ФОРМОЙ ИГРЫ ===
+// === ФОРМА ИГРЫ ===
 // ============================================
 
-/**
- * Открыть форму добавления новой игры
- */
 function openAddGameForm() {
     console.log('➕ Открытие формы добавления игры');
     
@@ -453,20 +359,17 @@ function openAddGameForm() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('gamePurchaseDate').value = today;
     
-    clearFormErrors();
+    currentGameRoles = [];
+    renderGameRoles(currentGameRoles);
     
-    openModal('gameFormModal'); // Из utils.js
+    clearFormErrors();
+    openModal('gameFormModal');
 }
 
-/**
- * Открыть форму редактирования существующей игры
- * @param {string} id - ID игры для редактирования
- */
 function openEditGameForm(id) {
     console.log('✏️ Открытие формы редактирования игры:', id);
     
     const game = getGameById(id);
-    
     if (!game) {
         showNotification('Игра не найдена', 'error');
         return;
@@ -489,63 +392,61 @@ function openEditGameForm(id) {
         hidePhotoPreview();
     }
     
+    currentGameRoles = Array.isArray(game.roles) ? game.roles.slice() : [];
+    renderGameRoles(currentGameRoles);
+    
     document.getElementById('gameFormTitle').textContent = 'Редактировать игру';
-    
     clearFormErrors();
-    
-    openModal('gameFormModal'); // Из utils.js
+    openModal('gameFormModal');
 }
 
-/**
- * Закрыть форму игры
- */
 function closeGameForm() {
-    console.log('❌ Закрытие формы игры');
-    
-    closeModal('gameFormModal'); // Из utils.js
+    closeModal('gameFormModal');
     
     const form = document.getElementById('gameForm');
     if (form) form.reset();
     
     currentPhotoBase64 = null;
+    currentGameRoles = [];
     hidePhotoPreview();
+    renderGameRoles(currentGameRoles);
     clearFormErrors();
 }
 
-/**
- * Обработка отправки формы игры
- * @param {Event} e - Событие submit
- */
 function handleGameFormSubmit(e) {
     e.preventDefault();
-    
     console.log('💾 Попытка сохранения игры');
     
     const validation = validateGameForm();
-    
     if (!validation.isValid) {
-        console.warn('⚠️ Валидация не пройдена:', validation.errors);
         displayFormErrors(validation.errors);
         return;
     }
+    
+    const roles = collectGameRolesFromUI();
     
     const gameData = {
         name: document.getElementById('gameName').value.trim(),
         photoBase64: currentPhotoBase64,
         category: document.getElementById('gameCategory').value,
         purchaseDate: document.getElementById('gamePurchaseDate').value || null,
-        price: document.getElementById('gamePrice').value ? parseFloat(document.getElementById('gamePrice').value) : null,
-        minPlayers: document.getElementById('gameMinPlayers').value ? parseInt(document.getElementById('gameMinPlayers').value) : null,
-        maxPlayers: document.getElementById('gameMaxPlayers').value ? parseInt(document.getElementById('gameMaxPlayers').value) : null,
-        avgDuration: document.getElementById('gameAvgDuration').value ? parseInt(document.getElementById('gameAvgDuration').value) : null,
-        difficulty: document.getElementById('gameDifficulty').value || null
+        price: document.getElementById('gamePrice').value
+            ? parseFloat(document.getElementById('gamePrice').value)
+            : null,
+        minPlayers: document.getElementById('gameMinPlayers').value
+            ? parseInt(document.getElementById('gameMinPlayers').value, 10)
+            : null,
+        maxPlayers: document.getElementById('gameMaxPlayers').value
+            ? parseInt(document.getElementById('gameMaxPlayers').value, 10)
+            : null,
+        avgDuration: document.getElementById('gameAvgDuration').value
+            ? parseInt(document.getElementById('gameAvgDuration').value, 10)
+            : null,
+        difficulty: document.getElementById('gameDifficulty').value || null,
+        roles: roles
     };
     
-    console.log('📦 Данные игры:', gameData);
-    console.log('📸 Фото:', gameData.photoBase64 ? `${gameData.photoBase64.length} символов` : 'нет');
-    
     const gameId = document.getElementById('gameId').value;
-    
     if (gameId) {
         const success = updateGameInStorage(gameId, gameData);
         if (success) {
@@ -565,25 +466,17 @@ function handleGameFormSubmit(e) {
 }
 
 // ============================================
-// === ВАЛИДАЦИЯ ФОРМЫ ===
+// === ВАЛИДАЦИЯ ФОРМЫ ИГРЫ ===
 // ============================================
 
-/**
- * Валидация полей формы игры
- * @returns {Object} { isValid: boolean, errors: Object }
- */
 function validateGameForm() {
     const errors = {};
     
     const name = document.getElementById('gameName').value.trim();
-    if (!name) {
-        errors.name = 'Введите название игры';
-    }
+    if (!name) errors.name = 'Введите название игры';
     
     const category = document.getElementById('gameCategory').value;
-    if (!category) {
-        errors.category = 'Выберите категорию';
-    }
+    if (!category) errors.category = 'Выберите категорию';
     
     const price = document.getElementById('gamePrice').value;
     if (price && (isNaN(price) || parseFloat(price) < 0)) {
@@ -595,34 +488,23 @@ function validateGameForm() {
         const selectedDate = new Date(purchaseDate);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
-        if (selectedDate > today) {
-            errors.purchaseDate = 'Дата покупки не может быть в будущем';
-        }
+        if (selectedDate > today) errors.purchaseDate = 'Дата покупки не может быть в будущем';
     }
     
     const minPlayers = document.getElementById('gameMinPlayers').value;
     const maxPlayers = document.getElementById('gameMaxPlayers').value;
-    
     if (minPlayers && maxPlayers) {
-        const min = parseInt(minPlayers);
-        const max = parseInt(maxPlayers);
-        
-        if (max < min) {
-            errors.players = 'Максимум игроков должен быть больше или равен минимуму';
-        }
+        const min = parseInt(minPlayers, 10);
+        const max = parseInt(maxPlayers, 10);
+        if (max < min) errors.players = 'Максимум игроков должен быть больше или равен минимуму';
     }
     
     return {
         isValid: Object.keys(errors).length === 0,
-        errors: errors
+        errors
     };
 }
 
-/**
- * Отобразить ошибки валидации в форме
- * @param {Object} errors - Объект с ошибками
- */
 function displayFormErrors(errors) {
     clearFormErrors();
     
@@ -630,80 +512,52 @@ function displayFormErrors(errors) {
         document.getElementById('gameNameError').textContent = errors.name;
         document.getElementById('gameName').classList.add('form__input--error');
     }
-    
     if (errors.category) {
         document.getElementById('gameCategoryError').textContent = errors.category;
         document.getElementById('gameCategory').classList.add('form__input--error');
     }
-    
     if (errors.price) {
         document.getElementById('gamePriceError').textContent = errors.price;
         document.getElementById('gamePrice').classList.add('form__input--error');
     }
-    
     if (errors.purchaseDate) {
         document.getElementById('gamePurchaseDateError').textContent = errors.purchaseDate;
         document.getElementById('gamePurchaseDate').classList.add('form__input--error');
     }
-    
     if (errors.players) {
         document.getElementById('gamePlayersError').textContent = errors.players;
     }
 }
 
-/**
- * Очистить все ошибки валидации
- */
 function clearFormErrors() {
-    const errorElements = document.querySelectorAll('.form__error');
-    errorElements.forEach(el => el.textContent = '');
-    
-    const inputs = document.querySelectorAll('.form__input--error');
-    inputs.forEach(input => input.classList.remove('form__input--error'));
+    document.querySelectorAll('.form__error').forEach(el => el.textContent = '');
+    document.querySelectorAll('.form__input--error').forEach(input =>
+        input.classList.remove('form__input--error')
+    );
 }
 
 // ============================================
-// === РАБОТА С ФОТО ===
+// === ФОТО ===
 // ============================================
 
-/**
- * Обработка выбора файла фото
- * @param {Event} e - Событие change
- */
 async function handlePhotoSelection(e) {
     const file = e.target.files[0];
+    if (!file) return;
     
-    if (!file) {
-        return;
-    }
-    
-    console.log('📸 Выбран файл:', file.name, '|', (file.size / 1024 / 1024).toFixed(2), 'MB');
-    
-    // Валидация файла (из imageUtils.js)
     const validation = validateImageFile(file);
-    
     if (!validation.isValid) {
         document.getElementById('gamePhotoError').textContent = validation.error;
         e.target.value = '';
         return;
     }
-    
     document.getElementById('gamePhotoError').textContent = '';
     
     try {
         showPhotoLoading();
-        
-        // Обработка фото (из imageUtils.js)
         const base64 = await handlePhotoUpload(file);
-        
-        console.log('✅ Фото обработано, Base64 длина:', base64.length);
-        
         currentPhotoBase64 = base64;
-        
         showPhotoPreview(base64);
-        
         hidePhotoLoading();
-        
     } catch (error) {
         console.error('❌ Ошибка обработки фото:', error);
         document.getElementById('gamePhotoError').textContent = 'Ошибка обработки фото';
@@ -712,87 +566,55 @@ async function handlePhotoSelection(e) {
     }
 }
 
-/**
- * Показать превью загруженного фото
- * @param {string} base64 - Base64 строка изображения
- */
 function showPhotoPreview(base64) {
     const uploadLabel = document.getElementById('photoUploadLabel');
     const preview = document.getElementById('photoPreview');
     const previewImg = document.getElementById('photoPreviewImg');
-    
     if (uploadLabel) uploadLabel.style.display = 'none';
     if (preview) preview.style.display = 'block';
     if (previewImg) previewImg.src = base64;
 }
 
-/**
- * Скрыть превью фото
- */
 function hidePhotoPreview() {
     const uploadLabel = document.getElementById('photoUploadLabel');
     const preview = document.getElementById('photoPreview');
     const previewImg = document.getElementById('photoPreviewImg');
-    
     if (uploadLabel) uploadLabel.style.display = 'flex';
     if (preview) preview.style.display = 'none';
     if (previewImg) previewImg.src = '';
 }
 
-/**
- * Показать индикатор загрузки фото
- */
 function showPhotoLoading() {
     const uploadLabel = document.getElementById('photoUploadLabel');
     const loading = document.getElementById('photoLoading');
-    
     if (uploadLabel) uploadLabel.style.display = 'none';
     if (loading) loading.style.display = 'flex';
 }
 
-/**
- * Скрыть индикатор загрузки фото
- */
 function hidePhotoLoading() {
     const loading = document.getElementById('photoLoading');
     if (loading) loading.style.display = 'none';
 }
 
-/**
- * Удалить загруженное фото
- */
 function removePhoto() {
-    console.log('🗑️ Удаление фото');
-    
     currentPhotoBase64 = null;
-    
     const photoInput = document.getElementById('gamePhoto');
     if (photoInput) photoInput.value = '';
-    
     hidePhotoPreview();
 }
 
 // ============================================
-// === УПРАВЛЕНИЕ КАТЕГОРИЯМИ ===
+// === КАТЕГОРИИ ===
 // ============================================
 
-/**
- * Инициализация категорий при первом запуске
- */
 function initializeCategories() {
-    const existingCategories = getCategories(); // Из storage.js
-    
+    const existingCategories = getCategories();
     if (!existingCategories) {
-        const defaultCategories = getDefaultCategories();
-        saveCategories(defaultCategories); // Из storage.js
-        console.log('📂 Категории инициализированы:', defaultCategories.length);
+        const defaults = getDefaultCategories();
+        saveCategories(defaults);
     }
 }
 
-/**
- * Получить список категорий по умолчанию
- * @returns {Array} Массив названий категорий
- */
 function getDefaultCategories() {
     return [
         'Стратегия',
@@ -812,29 +634,17 @@ function getDefaultCategories() {
     ];
 }
 
-/**
- * Получить все категории из LocalStorage
- * @returns {Array} Массив категорий
- */
 function getAllCategories() {
-    const categories = getCategories(); // Из storage.js
+    const categories = getCategories();
     return categories || getDefaultCategories();
 }
 
-/**
- * Загрузить категории в выпадающий список
- */
 function loadCategories() {
     const categories = getAllCategories();
     const select = document.getElementById('gameCategory');
-    
-    if (!select) {
-        console.error('❌ Селект категорий не найден');
-        return;
-    }
+    if (!select) return;
     
     const currentValue = select.value;
-    
     select.innerHTML = '<option value="">Выберите категорию</option>';
     
     categories.forEach(category => {
@@ -844,186 +654,110 @@ function loadCategories() {
         select.appendChild(option);
     });
     
-    if (currentValue) {
-        select.value = currentValue;
-    }
-    
-    console.log('📂 Категории загружены:', categories.length);
+    if (currentValue) select.value = currentValue;
 }
 
-// ============================================
-// === ДОБАВЛЕНИЕ КАТЕГОРИИ ===
-// ============================================
-
-/**
- * Открыть модальное окно для добавления новой категории
- */
 function openAddCategoryModal() {
-    console.log('➕ Открытие окна добавления категории');
-    
     const input = document.getElementById('newCategoryInput');
     const errorSpan = document.getElementById('categoryError');
-    
     if (input) input.value = '';
     if (errorSpan) errorSpan.textContent = '';
-    
-    openModal('addCategoryModal'); // Из utils.js
-    
+    openModal('addCategoryModal');
     if (input) input.focus();
 }
 
-/**
- * Закрыть окно добавления категории
- */
 function closeAddCategoryModal() {
-    console.log('❌ Закрытие окна добавления категории');
-    closeModal('addCategoryModal'); // Из utils.js
+    closeModal('addCategoryModal');
 }
 
-/**
- * Сохранить новую категорию
- */
 function saveNewCategory() {
     const input = document.getElementById('newCategoryInput');
     const errorSpan = document.getElementById('categoryError');
     const categoryName = input.value.trim();
     
-    // Валидация
     if (!categoryName) {
         errorSpan.textContent = 'Введите название категории';
         return;
     }
     
-    // Проверка на дубликат
     const existingCategories = getAllCategories();
     if (existingCategories.includes(categoryName)) {
         errorSpan.textContent = 'Такая категория уже существует';
         return;
     }
     
-    console.log('➕ Добавление новой категории:', categoryName);
-    
-    // Добавить категорию
     existingCategories.push(categoryName);
     existingCategories.sort();
-    
-    const saved = saveCategories(existingCategories); // Из storage.js
-    
+    const saved = saveCategories(existingCategories);
     if (saved) {
-        // Обновить dropdown
         loadCategories();
-        
-        // Выбрать новую категорию в списке
         document.getElementById('gameCategory').value = categoryName;
-        
-        // Закрыть окно
         closeAddCategoryModal();
-        
         showNotification(`✅ Категория "${categoryName}" добавлена!`, 'success');
     } else {
         errorSpan.textContent = 'Ошибка сохранения категории';
     }
 }
 
-// ============================================
-// === УПРАВЛЕНИЕ КАТЕГОРИЯМИ ===
-// ============================================
-
-/**
- * Открыть окно управления категориями
- */
 function openManageCategoriesModal() {
-    console.log('⚙️ Открытие окна управления категориями');
-    
     const listContainer = document.getElementById('categoriesList');
-    
-    if (!listContainer) {
-        console.error('❌ Контейнер categoriesList не найден');
-        return;
-    }
+    if (!listContainer) return;
     
     const allCategories = getAllCategories();
     const defaultCategories = getDefaultCategories();
     
-    // Очистить список
     listContainer.innerHTML = '';
-    
-    // Отрисовать каждую категорию
     allCategories.forEach(category => {
         const isDefault = defaultCategories.includes(category);
-        const categoryItem = document.createElement('div');
-        categoryItem.className = 'category-item';
-        categoryItem.innerHTML = `
+        const item = document.createElement('div');
+        item.className = 'category-item';
+        item.innerHTML = `
             <span class="category-name">${escapeHtml(category)}</span>
-            ${isDefault 
-                ? '<span class="category-badge">По умолчанию</span>' 
+            ${isDefault
+                ? '<span class="category-badge">По умолчанию</span>'
                 : `<button class="btn btn--delete-small" data-category="${escapeHtml(category)}">
-                    <i class="fas fa-trash"></i> Удалить
-                </button>`
-            }
+                        <i class="fas fa-trash"></i> Удалить
+                   </button>`}
         `;
-        listContainer.appendChild(categoryItem);
+        listContainer.appendChild(item);
     });
     
-    // Привязать обработчики удаления
-    const deleteButtons = listContainer.querySelectorAll('.btn--delete-small');
-    deleteButtons.forEach(btn => {
+    listContainer.querySelectorAll('.btn--delete-small').forEach(btn => {
         btn.addEventListener('click', () => {
             const categoryName = btn.getAttribute('data-category');
             deleteCategory(categoryName);
         });
     });
     
-    openModal('manageCategoriesModal'); // Из utils.js
+    openModal('manageCategoriesModal');
 }
 
-/**
- * Закрыть окно управления категориями
- */
 function closeManageCategoriesModal() {
-    console.log('❌ Закрытие окна управления категориями');
-    closeModal('manageCategoriesModal'); // Из utils.js
+    closeModal('manageCategoriesModal');
 }
 
-/**
- * Удалить пользовательскую категорию
- * @param {string} categoryName - Название категории для удаления
- */
 function deleteCategory(categoryName) {
-    console.log('🗑️ Попытка удаления категории:', categoryName);
-    
-    // Проверка: нельзя удалить категорию по умолчанию
     const defaultCategories = getDefaultCategories();
     if (defaultCategories.includes(categoryName)) {
         showNotification('Нельзя удалить категорию по умолчанию', 'error');
         return;
     }
     
-    // Подтверждение
     const games = getAllGames();
     const gamesWithCategory = games.filter(g => g.category === categoryName);
     
     let confirmMessage = `Удалить категорию "${categoryName}"?`;
-    
     if (gamesWithCategory.length > 0) {
         confirmMessage += `\n\nЭта категория используется в ${gamesWithCategory.length} играх.\nИгры не будут удалены.`;
     }
+    if (!confirm(confirmMessage)) return;
     
-    if (!confirm(confirmMessage)) {
-        return;
-    }
-    
-    // Удалить из списка категорий
     let categories = getAllCategories();
     categories = categories.filter(cat => cat !== categoryName);
-    
-    const saved = saveCategories(categories); // Из storage.js
-    
+    const saved = saveCategories(categories);
     if (saved) {
-        // Обновить отображение
-        openManageCategoriesModal(); // Перерисовать список
-        loadCategories(); // Обновить dropdown в форме
-        
+        openManageCategoriesModal();
+        loadCategories();
         showNotification(`🗑️ Категория "${categoryName}" удалена`, 'success');
     } else {
         showNotification('Ошибка удаления категории', 'error');
@@ -1034,47 +768,31 @@ function deleteCategory(categoryName) {
 // === УДАЛЕНИЕ ИГРЫ ===
 // ============================================
 
-/**
- * Открыть модальное окно подтверждения удаления
- * @param {string} id - ID игры для удаления
- */
 function openDeleteConfirmModal(id) {
     const game = getGameById(id);
-    
     if (!game) {
         showNotification('Игра не найдена', 'error');
         return;
     }
     
     gameToDeleteId = id;
-    
     const textElement = document.getElementById('deleteConfirmText');
     if (textElement) {
-        textElement.innerHTML = 
+        textElement.innerHTML =
             `Вы уверены, что хотите удалить игру <strong>"${escapeHtml(game.name)}"</strong>?`;
     }
-    
-    openModal('deleteConfirmModal'); // Из utils.js
+    openModal('deleteConfirmModal');
 }
 
-/**
- * Закрыть модальное окно подтверждения удаления
- */
 function closeDeleteConfirmModal() {
-    closeModal('deleteConfirmModal'); // Из utils.js
+    closeModal('deleteConfirmModal');
     gameToDeleteId = null;
 }
 
-/**
- * Подтвердить удаление игры
- */
 function confirmGameDeletion() {
-    if (!gameToDeleteId) {
-        return;
-    }
+    if (!gameToDeleteId) return;
     
     const success = deleteGameFromStorage(gameToDeleteId);
-    
     if (success) {
         showNotification('🗑️ Игра удалена', 'success');
         renderGamesList();
@@ -1082,38 +800,67 @@ function confirmGameDeletion() {
     } else {
         showNotification('Ошибка удаления игры', 'error');
     }
-    
     closeDeleteConfirmModal();
 }
 
 // ============================================
-// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+// === РОЛИ / ГЕРОИ / КОРПОРАЦИИ ===
 // ============================================
 
 /**
- * Обновить счётчик игр в дашборде
+ * Отрисовать роли игры в виде "чипсов"
+ * @param {Array<string>} roles
  */
-function updateGamesDashboard() {
-    const games = getAllGames();
-    const counter = document.getElementById('gamesCount');
-    if (counter) {
-        counter.textContent = games.length;
-    }
+function renderGameRoles(roles) {
+    const container = document.getElementById('gameRolesContainer');
+    if (!container) return;
+    
+    container.innerHTML = (roles || []).map((role, index) => `
+        <span class="tag" data-role-index="${index}">
+            <span class="tag__text">${escapeHtml(role)}</span>
+            <button type="button" class="tag__remove" data-role="${escapeHtml(role)}">&times;</button>
+        </span>
+    `).join('');
+    
+    container.querySelectorAll('.tag__remove').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const roleToRemove = btn.getAttribute('data-role');
+            currentGameRoles = (currentGameRoles || []).filter(r => r !== roleToRemove);
+            renderGameRoles(currentGameRoles);
+        });
+    });
 }
 
 /**
- * Форматирование даты в короткий формат
- * @param {string} isoDate - Дата в формате ISO
- * @returns {string} Дата в формате DD.MM.YYYY
+ * Собрать роли из UI
+ * @returns {Array<string>}
  */
+function collectGameRolesFromUI() {
+    const container = document.getElementById('gameRolesContainer');
+    if (!container) return [];
+    
+    const tags = container.querySelectorAll('.tag__text');
+    return Array.from(tags)
+        .map(span => span.textContent.trim())
+        .filter(Boolean);
+}
+
+// ============================================
+// === ВСПОМОГАТЕЛЬНЫЕ ===
+// ============================================
+
+function updateGamesDashboard() {
+    const games = getAllGames();
+    const counter = document.getElementById('gamesCount');
+    if (counter) counter.textContent = games.length;
+}
+
 function formatDateShort(isoDate) {
     if (!isoDate) return '';
-    
     const date = new Date(isoDate);
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
-    
     return `${day}.${month}.${year}`;
 }
 
