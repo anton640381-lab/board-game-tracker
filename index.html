@@ -143,108 +143,110 @@
             <div id="matchesList" class="matches-list"></div>
         </section>
 
-<!-- =============================================== -->
-<!-- СЕКЦИЯ: РАНДОМАЙЗЕР -->
-<!-- =============================================== -->
-<section id="randomizer-section" class="section">
-    <div class="section__header">
-        <div>
-            <h2 class="section__title">🎲 Рандомайзер</h2>
-            <p class="section__subtitle">Не можете выбрать, во что сыграть? Мы поможем!</p>
-        </div>
-    </div>
-    
-    <!-- Основной контейнер (показывается, если есть игры) -->
-    <div id="randomizerMainContainer">
-        <!-- Фильтры -->
-        <div class="randomizer-filters">
-            <h3 class="filters-title">Фильтры (опционально)</h3>
-            
-            <!-- Фильтр: Количество игроков -->
-            <div class="filter-group">
-                <label class="filter-checkbox">
-                    <input type="checkbox" id="filterByPlayers">
-                    <span>Количество игроков</span>
-                </label>
-                <div class="filter-inputs filter-inputs--single">
-                    <label for="playersCount" class="input-label">Сейчас нас:</label>
-                    <input 
-                        type="number" 
-                        id="playersCount" 
-                        class="form__input form__input--small"
-                        min="1" 
-                        max="99"
-                        placeholder="Например, 4"
-                    >
-                    <span class="filter-hint">👥 Рандомайзер выберет игру, в которую можно играть таким количеством</span>
+        <!-- =============================================== -->
+        <!-- СЕКЦИЯ: РАНДОМАЙЗЕР -->
+        <!-- =============================================== -->
+        <section id="randomizer-section" class="section">
+            <div class="section__header">
+                <div>
+                    <h2 class="section__title">🎲 Рандомайзер</h2>
+                    <p class="section__subtitle">Не можете выбрать, во что сыграть? Мы поможем!</p>
                 </div>
             </div>
             
-            <!-- Фильтр: Длительность -->
-            <div class="filter-group">
-                <label class="filter-checkbox">
-                    <input type="checkbox" id="filterByDuration">
-                    <span>Длительность партии</span>
-                </label>
-                <div class="filter-inputs filter-inputs--single">
-                    <label for="maxDuration" class="input-label">Есть времени (минуты):</label>
-                    <input 
-                        type="number" 
-                        id="maxDuration" 
-                        class="form__input form__input--small"
-                        min="1" 
-                        max="999"
-                        placeholder="Например, 60"
-                    >
-                    <span class="filter-hint">⏱️ Рандомайзер выберет игру, которая уложится в это время</span>
+            <!-- Основной контейнер (показывается, если есть игры) -->
+            <div id="randomizerMainContainer">
+                <!-- Фильтры -->
+                <div class="randomizer-filters">
+                    <h3 class="filters-title">Фильтры (опционально)</h3>
+                    
+                    <!-- Фильтр: Количество игроков -->
+                    <div class="filter-group">
+                        <label class="filter-checkbox">
+                            <input 
+                                type="checkbox" 
+                                id="filterByPlayers"
+                            >
+                            <span>Количество игроков</span>
+                        </label>
+                        <div class="filter-inputs filter-inputs--single">
+                            <label for="playersCount" class="input-label">Сейчас нас:</label>
+                            <input 
+                                type="number" 
+                                id="playersCount" 
+                                class="form__input form__input--small"
+                                min="1" 
+                                max="99"
+                                placeholder="Например, 4" 
+                            >
+                            <span class="filter-hint">👥 Рандомайзер выберет игру, в которую можно играть таким количеством</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Фильтр: Длительность -->
+                    <div class="filter-group">
+                        <label class="filter-checkbox">
+                            <input type="checkbox" id="filterByDuration">
+                            <span>Длительность партии</span>
+                        </label>
+                        <div class="filter-inputs filter-inputs--single">
+                            <label for="maxDuration" class="input-label">Есть времени (минуты):</label>
+                            <input 
+                                type="number" 
+                                id="maxDuration" 
+                                class="form__input form__input--small"
+                                min="1" 
+                                max="999"
+                                placeholder="Например, 60"
+                            >
+                            <span class="filter-hint">⏱️ Рандомайзер выберет игру, которая уложится в это время</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Фильтр: Категория -->
+                    <div class="filter-group">
+                        <label class="filter-checkbox">
+                            <input type="checkbox" id="filterByCategory">
+                            <span>Категория</span>
+                        </label>
+                        <div class="filter-inputs filter-inputs--single">
+                            <select id="categoryFilter" class="form__select">
+                                <option value="">Все категории</option>
+                            </select>
+                            <span class="filter-hint">📂 Показать только игры выбранной категории</span>
+                        </div>
+                    </div>
                 </div>
+                
+                <!-- Кнопка "Выбрать случайную игру" -->
+                <div class="randomizer-action">
+                    <button class="btn btn--randomize" id="randomizeBtn" type="button">
+                        <i class="fas fa-dice"></i>
+                        ВЫБРАТЬ СЛУЧАЙНУЮ ИГРУ
+                    </button>
+                </div>
+                
+                <!-- Анимация "думания" -->
+                <div id="randomSelectionAnimation" class="random-animation" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Выбираем игру...</p>
+                </div>
+                
+                <!-- Контейнер результата -->
+                <div id="randomizerResult"></div>
             </div>
             
-            <!-- Фильтр: Категория -->
-            <div class="filter-group">
-                <label class="filter-checkbox">
-                    <input type="checkbox" id="filterByCategory">
-                    <span>Категория</span>
-                </label>
-                <div class="filter-inputs filter-inputs--single">
-                    <select id="categoryFilter" class="form__select">
-                        <option value="">Все категории</option>
-                    </select>
-                    <span class="filter-hint">📂 Показать только игры выбранной категории</span>
-                </div>
+            <!-- Пустое состояние (показывается, если нет игр) -->
+            <div id="randomizerEmptyState" class="randomizer-empty-state" style="display: none;">
+                <div class="empty-icon">🎲</div>
+                <h2>Коллекция игр пуста</h2>
+                <p>Добавьте игры в коллекцию, чтобы использовать рандомайзер</p>
+                <button class="btn btn--primary btn--large" onclick="showSection('games')">
+                    <i class="fas fa-plus"></i>
+                    Перейти к играм
+                </button>
             </div>
-        </div>
-        
-        <!-- Кнопка "Выбрать случайную игру" -->
-        <div class="randomizer-action">
-            <button type="button" class="btn btn--randomize" id="randomizeBtn">
-                <i class="fas fa-dice"></i>
-                ВЫБРАТЬ СЛУЧАЙНУЮ ИГРУ
-            </button>
-        </div>
-        
-        <!-- Анимация "думания" -->
-        <div id="randomSelectionAnimation" class="random-animation" style="display: none;">
-            <div class="spinner"></div>
-            <p>🎲 Выбираем игру...</p>
-        </div>
-        
-        <!-- Контейнер результата -->
-        <div id="randomizerResult"></div>
-    </div>
-    
-    <!-- Пустое состояние (показывается, если нет игр) -->
-    <div id="randomizerEmptyState" class="randomizer-empty-state" style="display: none;">
-        <div class="empty-icon">🎲</div>
-        <h2>Коллекция игр пуста</h2>
-        <p>Добавьте игры в коллекцию, чтобы использовать рандомайзер</p>
-        <button class="btn btn--primary btn--large" onclick="showSection('games')">
-            <i class="fas fa-plus"></i>
-            Перейти к играм
-        </button>
-    </div>
-</section>
-
+        </section>
 
         <!-- =============================================== -->
         <!-- СЕКЦИЯ: СТАТИСТИКА -->
@@ -455,6 +457,33 @@
                         <option value="Экспертная">Экспертная</option>
                     </select>
                 </div>
+
+                <!-- НОВЫЙ БЛОК: Роли / герои / корпорации -->
+                <div class="form__group">
+                    <label class="form__label">
+                        Роли / герои / корпорации
+                        <span class="form__hint">(опционально)</span>
+                    </label>
+                    <p class="form__hint">
+                        Здесь можно перечислить возможные роли/героев/фракции для этой игры. 
+                        Например: "Дракула", "Ван Хельсинг" или названия корпораций в "Покорении Марса".
+                    </p>
+                    <div id="gameRolesContainer" class="tags-input">
+                        <!-- Список ролей будет отрисовываться сюда как "чипсы" -->
+                    </div>
+                    <div class="tags-input__controls">
+                        <input 
+                            type="text" 
+                            id="newRoleInput" 
+                            class="form__input form__input--small" 
+                            placeholder="Например: Дракула"
+                        >
+                        <button type="button" class="btn btn--secondary btn--small" id="addRoleBtn">
+                            <i class="fas fa-plus"></i>
+                            Добавить роль
+                        </button>
+                    </div>
+                </div>
                 
                 <!-- Кнопки -->
                 <div class="form__actions">
@@ -616,6 +645,26 @@
                             <input type="number" id="matchDuration" class="form__input" min="1" placeholder="120">
                             <span class="form__error" id="matchDurationError"></span>
                         </div>
+                    </div>
+
+                    <!-- НОВОЕ ПОЛЕ: Оценка игры -->
+                    <div class="form__group">
+                        <label class="form__label" for="matchRating">
+                            Оценка игры (1–10)
+                        </label>
+                        <input 
+                            type="number" 
+                            id="matchRating" 
+                            class="form__input" 
+                            min="1" 
+                            max="10" 
+                            step="1" 
+                            placeholder="Например, 8"
+                        >
+                        <span class="form__error" id="matchRatingError"></span>
+                        <p class="form__hint">
+                            💡 Необязательное поле. Можно поставить оценку игре после партии.
+                        </p>
                     </div>
                     
                     <div class="form__group">
