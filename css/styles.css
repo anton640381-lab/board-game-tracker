@@ -3696,3 +3696,82 @@ button, .btn, a {
         background-position: -200% 0;
     }
 }
+/* === Рейтинг в карточке партии === */
+.match-card__rating {
+    margin: 4px 0 8px;
+    color: var(--text-secondary, #cccccc);
+    font-size: 0.95rem;
+}
+
+/* === Роль участника в карточке === */
+.match-card__participant-role {
+    font-style: italic;
+    opacity: 0.8;
+    margin-left: 4px;
+}
+
+/* === Селектор роли в форме партии === */
+.score-input__role {
+    margin-top: 8px;
+}
+
+.score-role-select {
+    width: 100%;
+}
+
+/* === Теги ролей в форме игры === */
+.tags-input {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    min-height: 40px;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 0.85rem;
+}
+
+.tag__text {
+    margin-right: 6px;
+}
+
+.tag__remove {
+    border: none;
+    background: transparent;
+    color: #f87171;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0 2px;
+}
+
+/* === Контролы под полем ролей === */
+.tags-input__controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+/* === Топ игр по рейтингу === */
+.top-list--rating .top-item {
+    align-items: center;
+}
+
+.top-image--placeholder {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: #ffffff;
+}
